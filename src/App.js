@@ -4,8 +4,11 @@ import React from "react"
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app"
 import {
+  browserLocalPersistence,
   getAuth,
   GoogleAuthProvider,
+  onAuthStateChanged,
+  setPersistence,
   signInWithPopup,
   signOut,
 } from "firebase/auth"
@@ -26,10 +29,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const googleProvider = new GoogleAuthProvider()
+setPersistence(auth, browserLocalPersistence)
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false)
   const [userData, setUserData] = React.useState(null)
+
+  React.useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const { displayName, email } = user
+        const userData = {
+          displayName,
+          email,
+        }
+        setUserData(userData)
+        setIsLoggedIn(true)
+      }
+    })
+  }, [isLoggedIn])
 
   function loginWithGoogle() {
     signInWithPopup(auth, googleProvider)
